@@ -145,3 +145,45 @@ The backend includes an automated test suite ([`backend/tests/test_api.py`](back
 5. `test_overlap_different_days_allowed`: Same time on different dates allowed.
 6. `test_cancelled_slot_does_not_block_booking`: Cancelled slots liberate time windows.
 7. `test_patch_status_transitions`: Scheduled → Completed → Cancelled → Restored lifecycles.
+
+---
+
+## How It Works
+
+1. **Initial Load & Pre-Seeded Board**:
+   - On first startup, the backend automatically provisions SQLite tables and seeds realistic appointments across multiple dates.
+   - The frontend queries `GET /api/slots`, chronologically sorts appointments into date groups, and calculates status tallies.
+
+2. **Schedule Visualizer**:
+   - The interactive Day Schedule Track maps appointments onto an 8:00 AM – 6:00 PM timeline.
+   - Open intervals are calculated and displayed as `+ Available` cards. Clicking any open card auto-populates the booking modal with that exact time window.
+
+3. **Collision Detection & Validation**:
+   - When adding or editing an appointment, client-side validation ensures all fields are present, start time precedes end time, and no active appointments overlap (`[start, end)` interval check).
+   - If a conflict occurs, the system flags the colliding event and computes the next open slot today via Smart Collision Resolution.
+   - The backend independently enforces the overlap rule and returns `HTTP 409 Conflict` with an explanatory error message if violated.
+
+4. **Status Lifecycle & Audit Trail**:
+   - Appointments transition between `scheduled`, `completed`, and `cancelled`.
+   - Cancelled appointments remain visible with strike-through styling and can be restored. Every modification records who touched it and when.
+
+5. **Feedback & Alerts**:
+   - Actions provide immediate visual confirmation via spring-animated toasts, field-level error messages, and optional synthetic Web Audio clicks and chimes.
+
+---
+
+## Assumptions Made
+
+1. **Overlap Logic**:
+   - Half-open intervals: An appointment ending at 11:00 does not conflict with one starting at 11:00.
+   - Cancelled appointments liberate their time slot so another meeting can be scheduled in that window.
+   - Two appointments at the same time on different calendar days do not conflict.
+
+2. **Timezone Handling**:
+   - Appointments represent wall-clock time in the team's local timezone (dates stored as `YYYY-MM-DD` and times as `HH:MM:SS`), avoiding unexpected UTC offset shifts.
+
+3. **Team Context & Identity**:
+   - Designed for internal small teams. A local account switcher allows quick switching between team members to test multi-user attribution (`touched_by`) without requiring complex third-party OAuth setups.
+
+4. **Working Hours Default**:
+   - The timeline and slot recommender default to typical business hours (8:00 AM to 6:00 PM), while allowing appointments outside this window if manually specified.
