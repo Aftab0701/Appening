@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+ENV/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files and logs
+.env
+.env.local
+*.log
+
+# Editor and OS artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.pytest_cache/
+
+# Assessment prompt spec
+req.md
